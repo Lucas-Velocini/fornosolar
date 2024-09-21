@@ -236,7 +236,6 @@ begin
           lblIniciar.Text := 'Finalizar';
           rctStatus.Fill.Color := laranja;
           lblStatus.Text := 'Esquentando...';
-          //ShowMessage('Temperatura selecionada: ' + lblSliderTemp.Text);
 
           t := TThread.CreateAnonymousThread(procedure
           var
@@ -245,12 +244,10 @@ begin
             dados: TJSONObject;
             temp: string;
             jsonStr: string;
-            i, j: integer;
-            //jsonTemps: TJSONArray;
-            //jsonFinal : TJSONArray;
+            jsonObj : TJSONObject;
+            i, j, k: integer;
+            jsonTemps, jsonFinal: TJSONArray;
           begin
-            //jsonTemps.Create;
-            //jsonFinal.Create;
             try
               responsePost := TRequest.New.BaseURL('fornosolar.local/cozinhar')
                             .Accept('application/json')
@@ -273,6 +270,8 @@ begin
             jsonStr := '[';
             while lblIniciar.Text <> 'Cozinhar' do
             begin
+              jsonTemps := TJSONArray.Create;
+              jsonFinal := TJSONArray.Create;
               try
                 response := TRequest.New.BaseURL('fornosolar.local/temperatura')
                           .Accept('application/json')
@@ -313,13 +312,20 @@ begin
 
                 jsonStr := jsonStr + ']';
 
-                //jsonTemps := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(jsonStr), 0) as TJSONArray;
-                logGrafico.Lines.Add('Cheguei aqui 1');
-                if i > 9 then
+                jsonTemps := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(jsonStr), 0) as TJSONArray;
+
+                if i > 10 then
                 begin
-                  {for j := 1 to 10 do
+                  for j := (jsonTemps.Count - 10) to (jsonTemps.Count - 1) do
                   begin
-                    jsonFinal.AddElement(jsonTemps.Items[-j]);
+                    jsonFinal.AddElement(jsonTemps.Items[j].Clone as TJSONObject);
+                  end;
+
+                  for k := 0 to 9 do
+                  begin
+                    jsonObj := jsonFinal.Items[k] as TJSONObject;
+                    jsonObj.RemovePair('field');
+                    jsonObj.AddPair('field', (k+1).ToString);
                   end;
 
                   TThread.Synchronize(nil, procedure
@@ -327,15 +333,10 @@ begin
                     montarGrafico(jsonFinal.ToString);
                   end);
 
-
-                  jsonFinal.Free;
-                  jsonTemps.Free;}
-
-                  logGrafico.Lines.Add('depois de 10');
+                  jsonStr := jsonFinal.ToString;
                 end
                 else
                 begin
-                  logGrafico.Lines.Add('Entrei no else');
 
                   TThread.Synchronize(nil, procedure
                   begin
@@ -355,7 +356,10 @@ begin
               i := i + 1;
               dados.Free;
 
-              sleep(5000);
+              jsonTemps.Free;
+              jsonFinal.Free;
+
+              sleep(3000);
             end;
           end);
 
