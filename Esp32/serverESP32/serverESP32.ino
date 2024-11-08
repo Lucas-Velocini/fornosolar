@@ -2,10 +2,15 @@
 #include <ESPmDNS.h>
 #include <NetworkClient.h>
 #include "max6675.h"
+#include <ESP32Servo.h>
+
 int temperatura;
 int thermoDO = 6; //19
 int thermoCS = 7; //23
 int thermoCLK = 4; //5
+#define PIN_SG90 20
+
+int posIni = 0;
 
 MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 
@@ -13,6 +18,8 @@ const char* ssid = "FornoSolar"; //Define o nome do ponto de acesso
 const char* pass = "12345678"; //Define a senha
  
 WiFiServer sv(80); //Cria um servidor na porta 80
+
+Servo sg90;
 
 void setup() {
   Serial.begin(115200); //Inicia o monitor serial
@@ -45,28 +52,22 @@ void setup() {
 
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", 80);
-  //Serial.println("MAX6675 test");
-  // wait for MAX chip to stabilize
+
+  sg90.setPeriodHertz(50); // PWM frequency for SG90
+  sg90.attach(PIN_SG90, 500, 2400); // Minimum and maximum pulse width (in µs) to go from 0° to 180
+
+  sg90.write(0);
+
+
   delay(500);
 }
 
-
-
-
 void loop() {
-  //temperatura = random(0,101);
-  // basic readout test, just print the current temp
-  
-  Serial.print("C = "); 
-  //Serial.println(thermocouple.readCelsius());
 
   temperatura = thermocouple.readCelsius();
-
-
   
   // For the MAX6675 to update, you must delay AT LEAST 250ms between reads!
   delay(1000);
-  //Serial.println("printando...");
 
   WiFiClient client = sv.available(); //Cria o objeto cliente
 
@@ -82,9 +83,6 @@ void loop() {
             client.println("Content-type:text/html");
             client.println();
 
-            //client.print("teste"); //Linha para ligar o led
-            //client.print("Desligue o led clicando <a href=\"/desligar\">aqui</a><br>"); //Linha para desligar o led
-
             client.println();
             break;
           } else {   
@@ -94,22 +92,6 @@ void loop() {
           line += c; //Adiciona o caractere recebido à linha de leitura
         }
           
-        if (line.endsWith("GET /ligar")) { //Se a linha terminar com "/ligar", liga o led
-          digitalWrite(0, HIGH);
-          client.println("HTTP/1.1 200 OK"); //Envio padrão de início de comunicação
-          client.println("Content-type:text/html");
-          client.println();
-          client.print("teste ligar");
-          break;               
-        }
-        if (line.endsWith("GET /desligar")) { //Se a linha terminar com "/desligar", desliga o led
-          digitalWrite(0, LOW);  
-          client.println("HTTP/1.1 200 OK"); //Envio padrão de início de comunicação
-          client.println("Content-type:text/html");
-          client.println();
-          client.print("teste desligar");
-          break;                
-        }
         if (line.endsWith("GET /temperatura")) {  
           client.println("HTTP/1.1 200 OK"); //Envio padrão de início de comunicação
           client.println("Content-type:application/json");
@@ -131,6 +113,34 @@ void loop() {
           client.println("Content-type:text/html");
           client.println();
           client.print("Post em /cozinhar recebido.");
+          break;                
+        }
+        if (line.endsWith("POST /servo")) {  
+          String postBodyString = client.readString();
+          int idxLinhas = postBodyString.lastIndexOf('\n');
+          String anguloPost = postBodyString.substring(idxLinhas + 1);
+          int postBody;
+          postBody = anguloPost.toInt();
+          
+          client.println("HTTP/1.1 200 OK"); //Envio padrão de início de comunicação
+          client.println("Content-type:text/html");
+          client.println();
+          client.print("Post em /servo recebido.");
+
+          if (postBody > posIni) {
+            for (int pos = posIni; pos <= postBody; pos += 1) {
+              sg90.write(pos);
+              delay(10);
+            }
+          }
+          else if (postBody < posIni){
+            for (int pos = posIni; pos >= postBody; pos -= 1) {
+              sg90.write(pos);
+              delay(10);
+            }
+          }
+          
+          posIni = postBody;
           break;                
         }
       }
