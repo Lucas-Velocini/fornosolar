@@ -52,11 +52,7 @@ type
     imgLogo: TImage;
     rctFundo: TRectangle;
     rectFundoTela3: TRectangle;
-    edtUrl: TEdit;
-    btnConsulta: TButton;
-    logConsulta: TMemo;
     Line3: TLine;
-    btnLimpar: TButton;
     rectFundoTela2: TRectangle;
     imgGraficoBranco: TImage;
     imgTermometroBranco: TImage;
@@ -71,16 +67,21 @@ type
     lytGrafico: TLayout;
     lblGrafico: TLabel;
     logGrafico: TMemo;
+    btnServo: TButton;
+    sldServo: TTrackBar;
+    lblAngulo: TLabel;
+    btnLimpar: TButton;
     procedure btnPrincipalClick(Sender: TObject);
     procedure btnInfosClick(Sender: TObject);
     procedure btnTempoClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure sldTempChange(Sender: TObject);
     procedure swtTempSwitch(Sender: TObject);
-    procedure btnConsultaClick(Sender: TObject);
-    procedure btnLimparClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure btnIniciarClick(Sender: TObject);
+    procedure sldServoChange(Sender: TObject);
+    procedure btnServoClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
   private
     procedure montarGrafico(jsonStr: string);
     procedure TThreadEnd(Sender: TObject);
@@ -197,6 +198,30 @@ begin
   TabControlPrincipal.GoToVisibleTab(0);
 end;
 
+procedure TForm1.btnServoClick(Sender: TObject);
+begin
+  TThread.CreateAnonymousThread(procedure
+  var
+    response: IResponse;
+  begin
+
+    try
+      response := TRequest.New.BaseURL('fornosolar.local/servo')
+              .Accept('application/json')
+              .AddBody(lblAngulo.Text)
+              .post;
+    except
+      TThread.Synchronize(nil, procedure
+        begin
+          lblConectar.Text := 'Forno não conectado';
+          ShowMessage('Não foi possivel encontrar o forno!' + sLineBreak +
+          'Verifique se seu dispositivo está conectado a rede "FornoSolar" e tente novamente.');
+          TLoading.Hide;
+        end);
+    end;
+  end).Start;
+end;
+
 procedure TForm1.btnInfosClick(Sender: TObject);
 begin
   btnInfos.Bitmap := imgGraficoBranco.Bitmap;
@@ -293,6 +318,12 @@ begin
 
               temp := dados.GetValue<string>('temperatura', '0');
 
+              //ADICIONANDO LOG DAS TEMPERATURAS
+
+              logGrafico.Lines.Add('Temperatura ' + i.ToString + ': ' + temp);
+
+              //
+
               if i < 2 then
               begin
                 jsonStr := jsonStr + '{"field":"' +
@@ -376,38 +407,14 @@ begin
     end;
 end;
 
-procedure TForm1.btnConsultaClick(Sender: TObject);
-var
-  response: IResponse;
-  dados: TJSONObject;
-  temp: string;
-begin
-  response := TRequest.New.BaseURL(edtUrl.Text)
-              .Accept('application/json')
-              .Get;
-
-  if response.StatusCode <> 200 then
-    begin
-      logConsulta.Lines.Add('Erro ao realizar a consulta:' + response.Content);
-      logConsulta.GoToTextEnd
-    end
-  else
-    begin
-      dados := TJsonObject.ParseJSONValue(TEncoding.UTF8.GetBytes(response.Content), 0) as TJSONObject;
-
-      temp := dados.GetValue<string>('temperatura', 'outra rota');
-      logConsulta.Lines.Add(temp);
-      logConsulta.GoToTextEnd;
-
-      dados.Free;
-
-      //logConsulta.Lines.Add(response.Content);
-    end;
-end;
-
 procedure TForm1.btnLimparClick(Sender: TObject);
 begin
-  logConsulta.Text := '';
+  logGrafico.Text := '';
+end;
+
+procedure TForm1.sldServoChange(Sender: TObject);
+begin
+ lblAngulo.Text := sldServo.Value.ToString;
 end;
 
 procedure TForm1.sldTempChange(Sender: TObject);

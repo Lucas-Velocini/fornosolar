@@ -1389,7 +1389,7 @@ object Form1: TForm1
     Size.Height = 753.000000000000000000
     Size.PlatformDefault = False
     TabHeight = 49.000000000000000000
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 2
     TabPosition = None
     Sizes = (
@@ -1404,7 +1404,7 @@ object Form1: TForm1
         item
         end>
       TextSettings.Trimming = None
-      IsSelected = True
+      IsSelected = False
       Size.Width = 8.000000000000000000
       Size.Height = 8.000000000000000000
       Size.PlatformDefault = False
@@ -5188,7 +5188,7 @@ object Form1: TForm1
         item
         end>
       TextSettings.Trimming = None
-      IsSelected = False
+      IsSelected = True
       Size.Width = 8.000000000000000000
       Size.Height = 8.000000000000000000
       Size.PlatformDefault = False
@@ -5256,6 +5256,17 @@ object Form1: TForm1
           Viewport.Width = 396.000000000000000000
           Viewport.Height = 440.000000000000000000
         end
+        object btnLimpar: TButton
+          Position.X = 8.000000000000000000
+          Position.Y = 4.000000000000000000
+          Size.Width = 129.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          Text = 'Limpar log'
+          TextSettings.Trimming = None
+          OnClick = btnLimparClick
+        end
       end
     end
     object tabTempo: TTabItem
@@ -5280,69 +5291,53 @@ object Form1: TForm1
         Size.Height = 753.000000000000000000
         Size.PlatformDefault = False
         Stroke.Kind = None
-        object edtUrl: TEdit
-          Touch.InteractiveGestures = [LongTap, DoubleTap]
-          Align = Top
-          TabOrder = 0
-          Text = 'fornosolar.local/temperatura'
-          Position.X = 30.000000000000000000
-          Position.Y = 15.000000000000000000
-          Margins.Left = 30.000000000000000000
-          Margins.Top = 15.000000000000000000
-          Margins.Right = 30.000000000000000000
-          Size.Width = 344.000000000000000000
-          Size.Height = 32.000000000000000000
-          Size.PlatformDefault = False
-          TextPrompt = 'Url...'
-        end
-        object btnConsulta: TButton
-          Align = Top
-          Margins.Left = 30.000000000000000000
-          Margins.Top = 15.000000000000000000
-          Margins.Right = 30.000000000000000000
-          Position.X = 30.000000000000000000
-          Position.Y = 62.000000000000000000
-          Size.Width = 344.000000000000000000
-          Size.Height = 41.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 1
-          Text = 'Consultar'
-          TextSettings.Trimming = None
-          OnClick = btnConsultaClick
-        end
-        object logConsulta: TMemo
-          Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
-          DataDetectorTypes = []
-          Align = Bottom
-          Position.Y = 497.000000000000000000
-          Size.Width = 404.000000000000000000
-          Size.Height = 256.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 2
-          Viewport.Width = 396.000000000000000000
-          Viewport.Height = 248.000000000000000000
-        end
         object Line3: TLine
           Align = Bottom
           LineType = Bottom
-          Position.Y = 489.000000000000000000
+          Position.Y = 745.000000000000000000
           Size.Width = 404.000000000000000000
           Size.Height = 8.000000000000000000
           Size.PlatformDefault = False
         end
-        object btnLimpar: TButton
+        object btnServo: TButton
           Align = Bottom
-          Margins.Left = 300.000000000000000000
-          Margins.Right = 10.000000000000000000
-          Position.X = 300.000000000000000000
-          Position.Y = 467.000000000000000000
-          Size.Width = 94.000000000000000000
-          Size.Height = 22.000000000000000000
+          Margins.Bottom = 15.000000000000000000
+          Position.Y = 686.000000000000000000
+          Size.Width = 404.000000000000000000
+          Size.Height = 44.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 4
-          Text = 'Limpar'
+          TabOrder = 1
+          Text = 'Girar servo'
           TextSettings.Trimming = None
-          OnClick = btnLimparClick
+          OnClick = btnServoClick
+        end
+        object sldServo: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 180.000000000000000000
+          Orientation = Horizontal
+          Margins.Left = 50.000000000000000000
+          Margins.Top = 30.000000000000000000
+          Margins.Right = 50.000000000000000000
+          Position.X = 50.000000000000000000
+          Position.Y = 30.000000000000000000
+          Size.Width = 304.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+          OnChange = sldServoChange
+        end
+        object lblAngulo: TLabel
+          Align = Top
+          Margins.Top = 20.000000000000000000
+          Position.Y = 82.000000000000000000
+          Size.Width = 404.000000000000000000
+          Size.Height = 23.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.HorzAlign = Center
+          Text = '0'
+          TabOrder = 3
         end
       end
     end
